@@ -40,15 +40,11 @@ int arvoreRB(int *valores, int tamanho) {
     NoRB* nosAdicionados[tamanho];
     for (i = 0; i < tamanho; i++) {
         NoRB* no = adicionarRB(rbtree, valores[i]);
-        nosAdicionados[i] = no;
     }
-    printf("Adicionou todos!\n");
     contadorRBTree = 0;
     for (i = 0; i < tamanho; i++) {
-        removerRB(rbtree, valores[i]);
-        printf("Rodou %d\n", i);    
+        removerRB(rbtree, rbtree->raiz,valores[i]);
     }
-    printf("Removeu todos!\n");
     return 0;
 }
 

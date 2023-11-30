@@ -89,9 +89,7 @@ void transplant(ArvoreRB* arvore, NoRB* u, NoRB* v) {
     v->pai = u->pai;
 }
 
-void balancearRemocao(ArvoreRB* arvore, NoRB* no) {
-    printf("Aqui?\n");
-    NoRB *irmao;
+void balancearRemocao(ArvoreRB* arvore, NoRB* no, NoRB* irmao) {
     while (no != arvore->raiz && no->cor == Preto) {
         if (no == no->pai->esquerda) {
             irmao = no->pai->direita;
@@ -114,6 +112,7 @@ void balancearRemocao(ArvoreRB* arvore, NoRB* no) {
             no->pai->cor = Preto;
             irmao->direita->cor = Preto;
             rotacionarEsquerda(arvore, no->pai);
+            no = arvore->raiz;
         } else {
             irmao = no->pai->esquerda;
             if (irmao->cor == Vermelho) {
@@ -135,50 +134,104 @@ void balancearRemocao(ArvoreRB* arvore, NoRB* no) {
             no->pai->cor = Preto;
             irmao->esquerda->cor = Preto;
             rotacionarDireita(arvore, no->pai);
+            no = arvore->raiz;
         }
     }
-    arvore->raiz->cor = Preto;
+    no->cor = Preto;
     
 }
 
-void removerRB(ArvoreRB* arvore, int chave) {
-    NoRB *no = localizarRB(arvore, chave);
-    NoRB *subs = no;
-    NoRB *x;
-    Cor subsCorOriginal = subs->cor;
-    if (no->esquerda == arvore->nulo) {
-        x = no->direita;
-        transplant(arvore, no, no->direita);
-        printf("Esse caso funciona 1\n");
-    } else if (no->direita == arvore->nulo) {
-        x = no->esquerda;
-        transplant(arvore, no, no->esquerda);
-        printf("Esse caso funciona 2\n");
-    } else {
-        subs = sucessorInOrderRb(arvore, no->direita);
-        subsCorOriginal = subs->cor;
-        x = subs->direita;
-        if (subs->pai == no) {
-            x->pai = subs;
-        } else {
-            transplant(arvore, subs, subs->direita);
-            subs->direita = no->direita;
-            subs->direita->pai = subs;
-        }
-        transplant(arvore, no, subs);
-        subs->esquerda = no->esquerda;
-        subs->esquerda->pai = subs;
-        subs->cor = no->cor;
-    }
+void balancear(ArvoreRB* arvore, NoRB* no) {
+    while (no->pai->cor == Vermelho) {
+        if (no->pai == no->pai->pai->esquerda) {
+            NoRB *tio = no->pai->pai->direita;
+            
+            if (tio->cor == Vermelho) {
+                tio->cor = Preto; //Caso 1
+                no->pai->cor = Preto; 
 
-    if (subsCorOriginal == Preto) {
-        balancearRemocao(arvore, x);
+                no->pai->pai->cor = Vermelho; //Caso 1
+                no = no->pai->pai; //Caso 1
+            } else {
+                if (no == no->pai->direita) {
+                    no = no->pai; //Caso 2
+                    rotacionarEsquerda(arvore, no); //Caso 2
+                } 
+                no->pai->cor = Preto; 
+                no->pai->pai->cor = Vermelho; //Caso 3
+                rotacionarDireita(arvore, no->pai->pai); //Caso 3
+            }
+        } else {
+            NoRB *tio = no->pai->pai->esquerda;
+            
+            if (tio->cor == Vermelho) {
+                tio->cor = Preto; //Caso 1
+                no->pai->cor = Preto; 
+
+                no->pai->pai->cor = Vermelho; //Caso 1
+                no = no->pai->pai; //Caso 1
+            } else {
+                if (no == no->pai->esquerda) {
+                    no = no->pai; //Caso 2
+                    rotacionarDireita(arvore, no); //Caso 2
+                }
+                no->pai->cor = Preto; 
+                no->pai->pai->cor = Vermelho; //Caso 3
+                rotacionarEsquerda(arvore, no->pai->pai); //Caso 3
+            }
+        }
     }
+    arvore->raiz->cor = Preto; //Conserta possível quebra regra 2
 }
 
+NoRB* removerRB(ArvoreRB* arvore, NoRB* no, int chave) {
+    if (no == arvore->nulo) {
+        return no;
+    }
 
+    if (no->pai == arvore->nulo) {
+        return arvore->nulo;
+    }
+    
+    if (chave < no->valor) {
+        no->esquerda = removerRB(arvore, no->esquerda, chave);
+    } else if (chave > no->valor) {
+        no->direita = removerRB(arvore, no->direita, chave);
+    } else { // Quando achar
+        NoRB *subs = no;
+        NoRB *x = no;
+        Cor subsCorOriginal = subs->cor;
+        if (no->esquerda == arvore->nulo) {
+            x = no->direita;
+            transplant(arvore, no, no->direita);
+        } else if (no->direita == arvore->nulo) {
+            x = no->esquerda;
+            transplant(arvore, no, no->esquerda);
+        } else {
+            subs = sucessorInOrderRb(arvore, no->direita);
+            subsCorOriginal = subs->cor;
+            x = subs->direita;
+            if (subs->pai == no) {
+                x->pai = subs;
+            } else {
+                transplant(arvore, subs, subs->direita);
+                subs->direita = no->direita;
+                subs->direita->pai = subs;
+            }
+            transplant(arvore, no, subs);
+            subs->esquerda = no->esquerda;
+            subs->esquerda->pai = subs;
+            subs->cor = no->cor;
+        }
 
+        if (subsCorOriginal == Preto) {
+            balancearRemocao(arvore, x, x);
+        }
 
+        return x;
+    }
+
+}
 
 NoRB* localizarRB(ArvoreRB* arvore, int valor) {
     if (!vaziaRB(arvore)) {
@@ -193,6 +246,7 @@ NoRB* localizarRB(ArvoreRB* arvore, int valor) {
         }
     }
 
+    printf("Nó não existe!\n");
     return NULL;
 }
 
@@ -220,51 +274,6 @@ void percorrerProfundidadePosOrder(ArvoreRB* arvore, NoRB* no, void (callback)(i
         percorrerProfundidadePosOrder(arvore, no->direita,callback);
         callback(no->valor);
     }
-}
-
-void balancear(ArvoreRB* arvore, NoRB* no) {
-    while (no->pai->cor == Vermelho) {
-        if (no->pai == no->pai->pai->esquerda) {
-            NoRB *tio = no->pai->pai->direita;
-            
-            if (tio->cor == Vermelho) {
-                tio->cor = Preto; //Caso 1
-                no->pai->cor = Preto; 
-
-                no->pai->pai->cor = Vermelho; //Caso 1
-                no = no->pai->pai; //Caso 1
-            } else {
-                if (no == no->pai->direita) {
-                    no = no->pai; //Caso 2
-                    rotacionarEsquerda(arvore, no); //Caso 2
-                } else {
-                    no->pai->cor = Preto; 
-                    no->pai->pai->cor = Vermelho; //Caso 3
-                    rotacionarDireita(arvore, no->pai->pai); //Caso 3
-                }
-            }
-        } else {
-            NoRB *tio = no->pai->pai->esquerda;
-            
-            if (tio->cor == Vermelho) {
-                tio->cor = Preto; //Caso 1
-                no->pai->cor = Preto; 
-
-                no->pai->pai->cor = Vermelho; //Caso 1
-                no = no->pai->pai; //Caso 1
-            } else {
-                if (no == no->pai->esquerda) {
-                    no = no->pai; //Caso 2
-                    rotacionarDireita(arvore, no); //Caso 2
-                } else {
-                    no->pai->cor = Preto; 
-                    no->pai->pai->cor = Vermelho; //Caso 3
-                    rotacionarEsquerda(arvore, no->pai->pai); //Caso 3
-                }
-            }
-        }
-    }
-    arvore->raiz->cor = Preto; //Conserta possível quebra regra 2
 }
 
 NoRB* rotacionarEsquerda(ArvoreRB* arvore, NoRB* no) {

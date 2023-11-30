@@ -32,11 +32,12 @@ NoRB* rotacionarEsquerda(ArvoreRB *, NoRB *);
 NoRB* rotacionarDireita(ArvoreRB *, NoRB *);
 ArvoreRB *criar();
 int vaziaRB(ArvoreRB *);
-// void removerRB(ArvoreRB*, NoRB*, int);
+NoRB* removerRB(ArvoreRB*, NoRB*, int);
 void removerBalanceado(ArvoreRB* arvore, int chave);
-void removerRB(ArvoreRB*, int);
+// void removerRB(ArvoreRB*, int);
 NoRB* resolveCasosBalanceamento(ArvoreRB*, NoRB*);
 NoRB* adicionarRB(ArvoreRB *, int);
+void insercaoRB(ArvoreRB *, int);
 void percorrerProfundidadeInOrder(ArvoreRB* arvore, NoRB* no);
 NoRB* localizarRB(ArvoreRB *arvore, int valor);
 #endif
