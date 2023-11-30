@@ -49,8 +49,8 @@ NoAVL* adicionarNoAVL(NoAVL* no, int valor) {
 }
 
 NoAVL* adicionarAVL(ArvoreAVL* arvore, int valor) {
+    contadorAVL++;
     if (arvore->raiz == NULL) {
-        // printf("Adicionando %d\n",valor);
         NoAVL* novo = criarNoAVL(valor);
         arvore->raiz = novo;
         arvore->raiz->pai = NULL;
@@ -70,19 +70,19 @@ void balanceamento(ArvoreAVL* a, NoAVL* no) {
             //rotacao a direita
             if (fb(no->esquerda) > 0) {
                 // printf("RSD(%d)\n", no->valor);
-                rsd(a, no);
+                no = rsd(a, no);
             } else {
                 // printf("RDD(%d)\n", no->valor);
-                rdd(a, no);
+                no = rdd(a, no);
             }
         } else if (fator < -1) {
             //rotacao a esquerda
             if (fb(no->direita) < 0) {
                 // printf("RSE(%d)\n", no->valor);
-                rse(a, no);
+                no = rse(a, no);
             } else {
                 // printf("RDE(%d)\n", no->valor);
-                rde(a, no);
+                no = rde(a, no);
             }
         }
 
@@ -90,40 +90,56 @@ void balanceamento(ArvoreAVL* a, NoAVL* no) {
     }
 }
 
-void removerSimples(ArvoreAVL* arvore, NoAVL* no) {
-    if (no->esquerda != NULL)
-        removerSimples(arvore, no->esquerda);  
-  
-    if (no->direita != NULL)
-        removerSimples(arvore, no->direita);
-  
-    if (no->pai == NULL) {
-        arvore->raiz = no->esquerda != NULL ? no->esquerda : no->direita;
-    } else {
-        if (no->pai->esquerda == no) {
-            no->pai->esquerda = NULL;
-            balanceamento(arvore, no->pai->direita ? no->pai->direita : no->pai);
-        }
-        else {
-            no->pai->direita = NULL;
-            balanceamento(arvore, no->pai->esquerda ? no->pai->esquerda : no->pai);
-        }
+NoAVL* removerAVLChave(ArvoreAVL* arvore, NoAVL* no, int chave) {
+    if (no == NULL) {
+        return no;
     }
-    
-    free(no);
-}
 
-void removerAVL(ArvoreAVL* arvore, int chave) {
-    NoAVL *no = localizar(arvore->raiz, chave);
-    if (no != NULL) {
+    if (chave < no->valor) {
+        no->esquerda = removerAVLChave(arvore, no->esquerda, chave);
+    } else if (chave > no->valor) {
+        no->direita = removerAVLChave(arvore, no->direita, chave);
+    } else {
         if (no->direita != NULL && no->esquerda != NULL) {
             NoAVL* sucessor = sucessorInOrder(no->direita);
-            no->valor = sucessor->valor; 
-            no = sucessor;
+            no->valor = sucessor->valor;
+            no->direita = removerAVLChave(arvore, no->direita, sucessor->valor);
+        } else {
+            NoAVL *temp = no->direita ? no->esquerda : no->direita;
+            if (temp == NULL) {
+                temp = no;
+                no = NULL;
+            } else {
+                *no = *temp;
+            }
+
+            free(temp);
         }
     }
 
-    removerSimples(arvore, no);
+    if (no == NULL) {
+        return NULL;
+    }
+
+    // Tá feio mas funciona, o negócio é que como a função vai reconstruindo os ancestrais, ela precisa desse retorno das rotações.
+    int fator = fb(no);
+    if (fator > 1) { 
+        if (fb(no->esquerda) > 0) {
+            return rsd(arvore, no);
+        } else {
+            return rdd(arvore, no);
+        }
+    } else if (fator < -1) {
+        if (fb(no->direita) < 0) {
+            return rse(arvore, no);
+        } else {
+            return rde(arvore, no);
+        }
+    }
+
+    // printf("%d chamadas sem problemas\n", contadorAVL++);
+    contadorAVL++;
+    return no;
 }
 
 NoAVL* localizar(NoAVL* no, int valor) {
@@ -156,7 +172,7 @@ void percorrerAVL(NoAVL* no) {
         percorrerAVL(no->esquerda);
         printf("%d ", no->valor);
         percorrerAVL(no->direita);
-    }
+    } 
 }
 
 void visitar(int valor){
@@ -254,27 +270,3 @@ NoAVL* rdd(ArvoreAVL* arvore, NoAVL* no) {
     no->esquerda = rse(arvore, no->esquerda);
     return rsd(arvore, no);
 }
-
-
-
-    // ArvoreAVL* a = criar();
-    /*
-    adicionar(a, 4);
-    adicionar(a, 2);
-    adicionar(a, 8);
-    adicionar(a, 1);
-    adicionar(a, 3);
-    adicionar(a, 6);
-    adicionar(a, 9);
-    adicionar(a, 5);
-    adicionar(a, 7);
-    */
-    // int i;
-    // for (i = 1; i <= 9; i++) {
-    //     adicionar(a, i);
-    // }
-
-    // printf("Altura: %d\n", altura(a->raiz) + 1);
-    // printf("In-order: ");
-    // percorrer(a->raiz,visitar);
-    // printf("\n");

@@ -18,7 +18,8 @@ typedef struct arvoreAVL {
 void balanceamento(ArvoreAVL*, NoAVL*);
 int altura(NoAVL*);
 int fb(NoAVL*);
-void removerAVL(ArvoreAVL*, int);
+void removerAVL(ArvoreAVL*, NoAVL*);
+NoAVL* removerAVLChave(ArvoreAVL*, NoAVL* , int);
 ArvoreAVL* criarAVL();
 NoAVL* localizar(NoAVL*, int);
 NoAVL* sucessorInOrder(NoAVL*);

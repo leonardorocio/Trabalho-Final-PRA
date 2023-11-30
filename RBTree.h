@@ -28,10 +28,15 @@ typedef struct arvore
 
 NoRB *criarNoRB(ArvoreRB *, NoRB *, int);
 void balancear(ArvoreRB *, NoRB *);
-void rotacionarEsquerda(ArvoreRB *, NoRB *);
-void rotacionarDireita(ArvoreRB *, NoRB *);
+NoRB* rotacionarEsquerda(ArvoreRB *, NoRB *);
+NoRB* rotacionarDireita(ArvoreRB *, NoRB *);
 ArvoreRB *criar();
 int vaziaRB(ArvoreRB *);
-NoRB *adicionarRB(ArvoreRB *, int);
-NoRB *localizarRB(ArvoreRB *arvore, int valor);
+// void removerRB(ArvoreRB*, NoRB*, int);
+void removerBalanceado(ArvoreRB* arvore, int chave);
+void removerRB(ArvoreRB*, int);
+NoRB* resolveCasosBalanceamento(ArvoreRB*, NoRB*);
+NoRB* adicionarRB(ArvoreRB *, int);
+void percorrerProfundidadeInOrder(ArvoreRB* arvore, NoRB* no);
+NoRB* localizarRB(ArvoreRB *arvore, int valor);
 #endif

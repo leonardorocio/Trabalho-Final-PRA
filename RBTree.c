@@ -64,6 +64,122 @@ NoRB* adicionarRB(ArvoreRB* arvore, int valor) {
     }
 }
 
+NoRB* sucessorInOrderRb(ArvoreRB* arvore, NoRB* no) {
+    while (no->esquerda != arvore->nulo) {
+        no = no->esquerda;
+    }
+
+    return no;
+}
+
+void trocaValores(NoRB* a, NoRB* b) {
+    int x = a->valor;
+    a->valor = b->valor;
+    b->valor = x;
+}
+
+void transplant(ArvoreRB* arvore, NoRB* u, NoRB* v) {
+    if (u->pai == arvore->nulo) {
+        arvore->raiz = v;
+    } else if (u == u->pai->esquerda) {
+        u->pai->esquerda = v;
+    } else if (u == u->pai->direita) {
+        u->pai->direita = v;
+    } 
+    v->pai = u->pai;
+}
+
+void balancearRemocao(ArvoreRB* arvore, NoRB* no) {
+    printf("Aqui?\n");
+    NoRB *irmao;
+    while (no != arvore->raiz && no->cor == Preto) {
+        if (no == no->pai->esquerda) {
+            irmao = no->pai->direita;
+            if (irmao->cor == Vermelho) {
+                irmao->cor = Preto;
+                no->pai->cor = Vermelho;
+                rotacionarEsquerda(arvore, no->pai);
+                irmao = no->pai->direita;
+            }
+            if (irmao->esquerda->cor == Preto && irmao->direita->cor == Preto) {
+                irmao->cor = Vermelho;
+                no = no->pai;
+            } else if (irmao->direita->cor == Preto) {
+                irmao->esquerda->cor = Preto;
+                irmao->cor = Vermelho;
+                rotacionarDireita(arvore, irmao);
+                irmao = no->pai->direita;
+            }
+            irmao->cor = no->pai->cor;
+            no->pai->cor = Preto;
+            irmao->direita->cor = Preto;
+            rotacionarEsquerda(arvore, no->pai);
+        } else {
+            irmao = no->pai->esquerda;
+            if (irmao->cor == Vermelho) {
+                irmao->cor = Preto;
+                no->pai->cor = Vermelho;
+                rotacionarDireita(arvore, no->pai);
+                irmao = no->pai->esquerda;
+            }
+            if (irmao->esquerda->cor == Preto && irmao->direita->cor == Preto) {
+                irmao->cor = Vermelho;
+                no = no->pai;
+            } else if (irmao->esquerda->cor == Preto) {
+                irmao->direita->cor = Preto;
+                irmao->cor = Vermelho;
+                rotacionarEsquerda(arvore, irmao);
+                irmao = no->pai->esquerda;
+            }
+            irmao->cor = no->pai->cor;
+            no->pai->cor = Preto;
+            irmao->esquerda->cor = Preto;
+            rotacionarDireita(arvore, no->pai);
+        }
+    }
+    arvore->raiz->cor = Preto;
+    
+}
+
+void removerRB(ArvoreRB* arvore, int chave) {
+    NoRB *no = localizarRB(arvore, chave);
+    NoRB *subs = no;
+    NoRB *x;
+    Cor subsCorOriginal = subs->cor;
+    if (no->esquerda == arvore->nulo) {
+        x = no->direita;
+        transplant(arvore, no, no->direita);
+        printf("Esse caso funciona 1\n");
+    } else if (no->direita == arvore->nulo) {
+        x = no->esquerda;
+        transplant(arvore, no, no->esquerda);
+        printf("Esse caso funciona 2\n");
+    } else {
+        subs = sucessorInOrderRb(arvore, no->direita);
+        subsCorOriginal = subs->cor;
+        x = subs->direita;
+        if (subs->pai == no) {
+            x->pai = subs;
+        } else {
+            transplant(arvore, subs, subs->direita);
+            subs->direita = no->direita;
+            subs->direita->pai = subs;
+        }
+        transplant(arvore, no, subs);
+        subs->esquerda = no->esquerda;
+        subs->esquerda->pai = subs;
+        subs->cor = no->cor;
+    }
+
+    if (subsCorOriginal == Preto) {
+        balancearRemocao(arvore, x);
+    }
+}
+
+
+
+
+
 NoRB* localizarRB(ArvoreRB* arvore, int valor) {
     if (!vaziaRB(arvore)) {
         NoRB* no = arvore->raiz;
@@ -80,13 +196,13 @@ NoRB* localizarRB(ArvoreRB* arvore, int valor) {
     return NULL;
 }
 
-void percorrerProfundidadeInOrder(ArvoreRB* arvore, NoRB* no, void (*callback)(int)) {
+void percorrerProfundidadeInOrder(ArvoreRB* arvore, NoRB* no) {
     if (no != arvore->nulo) {
         
         
-        percorrerProfundidadeInOrder(arvore, no->esquerda,callback);
-        callback(no->valor);
-        percorrerProfundidadeInOrder(arvore, no->direita,callback);
+        percorrerProfundidadeInOrder(arvore, no->esquerda);
+        printf("%d ", (no->valor));
+        percorrerProfundidadeInOrder(arvore, no->direita);
     }
 }
 
@@ -151,7 +267,7 @@ void balancear(ArvoreRB* arvore, NoRB* no) {
     arvore->raiz->cor = Preto; //Conserta possível quebra regra 2
 }
 
-void rotacionarEsquerda(ArvoreRB* arvore, NoRB* no) {
+NoRB* rotacionarEsquerda(ArvoreRB* arvore, NoRB* no) {
     NoRB* direita = no->direita;
     no->direita = direita->esquerda; 
 
@@ -171,9 +287,11 @@ void rotacionarEsquerda(ArvoreRB* arvore, NoRB* no) {
 
     direita->esquerda = no;
     no->pai = direita;
+
+    return direita;
 }
 
-void rotacionarDireita(ArvoreRB* arvore, NoRB* no) {
+NoRB* rotacionarDireita(ArvoreRB* arvore, NoRB* no) {
     NoRB* esquerda = no->esquerda;
     no->esquerda = esquerda->direita;
     
@@ -193,20 +311,6 @@ void rotacionarDireita(ArvoreRB* arvore, NoRB* no) {
     
     esquerda->direita = no;
     no->pai = esquerda;
+
+    return esquerda;
 }
-
-// int main() {
-//     ArvoreRB* a = criar();
-
-//     adicionar(a,7);
-//     adicionar(a,6);
-//     adicionar(a,5);
-//     adicionar(a,4);
-//     adicionar(a,3);
-//     adicionar(a,2);
-//     adicionar(a,1);
-
-//     printf("In-order: ");
-//     percorrerProfundidadeInOrder(a, a->raiz,visitar);
-//     printf("\n");
-// }
