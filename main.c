@@ -47,8 +47,7 @@ int arvoreRB(int *valores, int tamanho) {
         removerRB(rbtree, rbtree->raiz,valores[i]);
         printf("Rodaram %d\n", i);
     }
-    // printf("")
-    percorrerProfundidadeInOrder(rbtree, rbtree->raiz);
+    // percorrerProfundidadeInOrder(rbtree, rbtree->raiz);
     return 0;
 }
 
