@@ -105,20 +105,28 @@ NoAVL* removerAVLChave(ArvoreAVL* arvore, NoAVL* no, int chave) {
             no->valor = sucessor->valor;
             no->direita = removerAVLChave(arvore, no->direita, sucessor->valor);
         } else {
-            NoAVL *temp = no->direita ? no->esquerda : no->direita;
-            if (temp == NULL) {
-                temp = no;
-                no = NULL;
+            if (no == arvore->raiz) {
+                if (no->esquerda != NULL) {
+                    arvore->raiz = no->esquerda;
+                } else {
+                    arvore->raiz = no->direita;
+                }
             } else {
-                *no = *temp;
-            }
+                NoAVL *temp = no->direita ? no->esquerda : no->direita;
+                if (temp == NULL) {
+                    temp = no;
+                    no = NULL;
+                } else {
+                    *no = *temp;
+                }
 
-            free(temp);
+                free(temp);
+            }
         }
     }
 
     if (no == NULL) {
-        return NULL;
+        return no;
     }
 
     // Tá feio mas funciona, o negócio é que como a função vai reconstruindo os ancestrais, ela precisa desse retorno das rotações.
@@ -137,8 +145,6 @@ NoAVL* removerAVLChave(ArvoreAVL* arvore, NoAVL* no, int chave) {
         }
     }
 
-    // printf("%d chamadas sem problemas\n", contadorAVL++);
-    contadorAVL++;
     return no;
 }
 
@@ -161,10 +167,11 @@ NoAVL* localizar(NoAVL* no, int valor) {
 }
 
 NoAVL* sucessorInOrder(NoAVL* no) {
-    while(no->esquerda != NULL) {
-        no = no->esquerda;
+    NoAVL* atual = no;
+    while(atual->esquerda != NULL) {
+        atual = atual->esquerda;
     }
-    return no;
+    return atual;
 }
 
 void percorrerAVL(NoAVL* no) {

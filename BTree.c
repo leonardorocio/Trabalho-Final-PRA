@@ -90,6 +90,10 @@ NoB* localizaNoB(ArvoreB* arvore, int chave) {
     return NULL; //não encontrou nenhum nó
 }
 
+void removeNoB(ArvoreB* arvoreB, NoB* no, int chave) {
+    
+}
+
 void adicionaChaveNoB(NoB* no, NoB* novo, int chave) {
     int i = pesquisaBinaria(no, chave);
     
@@ -162,22 +166,3 @@ void adicionaChave(ArvoreB* arvore, int chave) {
 
     adicionaChaveRecursivo(arvore, no, NULL, chave);
 }
-
-// int main() {
-//     ArvoreB* arvore = criaArvore(1);
-    
-//     contador = 0;
-
-//     adicionaChave(arvore, 12);
-//     adicionaChave(arvore, 3);
-//     adicionaChave(arvore, 5);
-//     adicionaChave(arvore, 7);
-//     adicionaChave(arvore, 15);
-//     adicionaChave(arvore, 99);
-//     adicionaChave(arvore, 1);
-
-//     percorreArvore(arvore->raiz);
-
-//     printf("\nNúmero de operações: %d\n", contador);
-
-// }

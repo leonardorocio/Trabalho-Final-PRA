@@ -190,7 +190,7 @@ NoRB* removerRB(ArvoreRB* arvore, NoRB* no, int chave) {
     }
 
     if (no->pai == arvore->nulo) {
-        return arvore->nulo;
+        return arvore->raiz;
     }
     
     if (chave < no->valor) {
@@ -224,10 +224,12 @@ NoRB* removerRB(ArvoreRB* arvore, NoRB* no, int chave) {
             subs->cor = no->cor;
         }
 
+
         if (subsCorOriginal == Preto) {
             balancearRemocao(arvore, x, x);
         }
 
+        free(no);
         return x;
     }
 

@@ -29,7 +29,9 @@ int arvoreAVL(int *valores, int tamanho) {
     contadorAVL = 0;
     for (i = 0; i < tamanho; i++) {
         removerAVLChave(avl, avl->raiz, valores[i]);
+        // printf("Rodou %d\n", i);
     }
+    // percorrerAVL(avl->raiz);
     return 0;
 }
 
@@ -37,19 +39,31 @@ int arvoreRB(int *valores, int tamanho) {
     contadorRBTree = 0;
     ArvoreRB *rbtree = criar();
     int i;
-    NoRB* nosAdicionados[tamanho];
     for (i = 0; i < tamanho; i++) {
         NoRB* no = adicionarRB(rbtree, valores[i]);
     }
     contadorRBTree = 0;
     for (i = 0; i < tamanho; i++) {
         removerRB(rbtree, rbtree->raiz,valores[i]);
+        printf("Rodaram %d\n", i);
     }
+    // printf("")
+    percorrerProfundidadeInOrder(rbtree, rbtree->raiz);
     return 0;
 }
 
 int arvoreBOrdemUm(int *valores, int tamanho) {
+    contadorBTree = 0;
     ArvoreB *btreeOne = criaArvore(1);
+    int i;
+    for (i = 0; i < tamanho; i++) {
+        adicionaChave(btreeOne, valores[i]);
+    }
+    contadorBTree = 0;
+    for (i = 0; i < tamanho; i++) {
+        
+    }
+
 }
 
 int arvoreBOrdemCinco(int *valores, int tamanho) {
@@ -75,7 +89,7 @@ int main(int argc, char const *argv[]) {
         int *valores = geraVetor(n);
         // mediaAVL += arvoreAVL(valores, n);
         mediaRubroNegra += arvoreRB(valores, n);
-        mediaBtreeOne += arvoreBOrdemUm(valores, n);
+        // mediaBtreeOne += arvoreBOrdemUm(valores, n);
         mediaBtreeFive += arvoreBOrdemCinco(valores, n);
         mediaBtreeTen += arvoreBOrdemDez(valores, n);    
     }
@@ -85,5 +99,6 @@ int main(int argc, char const *argv[]) {
     mediaBtreeOne /= repeticoes;
     mediaBtreeFive /= repeticoes;
     mediaBtreeTen /= repeticoes;
+    // printf("Fim!");
     return 0;
 }
