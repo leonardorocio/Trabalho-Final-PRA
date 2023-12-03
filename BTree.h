@@ -46,17 +46,17 @@ btree_lookup
 
 struct btree_node {
 	struct btree_node *parent;
-	
+
 	/* Number of items (rather than branches). */
 	unsigned char count;
-	
+
 	/* 0 if node is a leaf, 1 if it has leaf children, etc. */
 	unsigned char depth;
-	
+
 	/* node->parent->branch[node->k] == this */
 	unsigned char k;
-	
-	
+
+
 	// const void *item[BTREE_ITEM_MAX];
 	const void **item;
 	/*
@@ -70,7 +70,7 @@ typedef struct btree_iterator_s {
 	struct btree *btree;
 	struct btree_node *node;
 	unsigned int k;
-	
+
 	/*
 	 * The relationship between item and (node, k) depends on what function
 	 * set it.  It is mainly for convenience.
@@ -107,10 +107,10 @@ typedef int (*btree_action_t)(void *item, void *ctx);
 struct btree {
 	struct btree_node *root;
 	size_t count; /* Total number of items in B-tree */
-	
+
 	btree_search_t search;
 	bool multi;
-	
+
 	/*
 	 * These are set to NULL by default.
 	 *

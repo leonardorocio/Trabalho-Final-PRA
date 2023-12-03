@@ -20,11 +20,13 @@
  * THE SOFTWARE.
  */
 
-#include "btree.h"
+#include "BTree.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+unsigned long contadorBTree = 0;
 
 extern int max_items;
 
@@ -75,7 +77,7 @@ struct btree *btree_new(btree_search_t search)
 	btree->root = node;
 	btree->search = search;
 	btree->multi = false;
-	printf("Max Items: %d\nMIN: %d\nMAX: %d\n", max_items, MIN, MAX);
+	printf("Max Items: %d\nMIN: %d\nMAX: %d", max_items, MIN, MAX);
 	return btree;
 }
 
@@ -88,10 +90,11 @@ void btree_delete(struct btree *btree)
 bool btree_insert(struct btree *btree, const void *item)
 {
 	btree_iterator iter;
-	
+
+	contadorBTree++;
 	if (btree_find_last(btree, item, iter) && !btree->multi)
 		return false;
-	
+
 	btree_insert_at(iter, item);
 	return true;
 }
@@ -101,74 +104,85 @@ bool btree_remove(struct btree *btree, const void *key)
 	btree_iterator iter;
 	bool success = false;
 	bool multi = btree->multi;
-	
+
 	do {
+        contadorBTree++;
 		if (btree_find_first(btree, key, iter)) {
 			btree_remove_at(iter);
 			success = true;
 		}
+		contadorBTree++;
 	} while (multi);
-	
+
 	return success;
 }
 
 void *btree_lookup(struct btree *btree, const void *key)
 {
 	btree_iterator iter;
-	
+
+	contadorBTree++;
 	if (btree_find_first(btree, key, iter))
 		return iter->item;
-	
+
 	return NULL;
 }
 
 int btree_begin_end_lr(const struct btree *btree, btree_iterator iter, int lr)
 {
 	struct btree_node *node;
-	
+
 	iter->btree = (struct btree *)btree;
 	begin_end_lr(iter, btree->root, lr);
-	
+
 	/* Set iter->item if any items exist. */
 	node = iter->node;
+	contadorBTree++;
 	if (node->count) {
 		iter->item = (void*)node->item[iter->k - lr];
 		return 1;
 	}
-	
+
 	return 0;
 }
 
 int btree_deref(btree_iterator iter)
 {
+    contadorBTree++;
 	if (iter->k >= iter->node->count) {
 		struct btree_iterator_s tmp = *iter;
 		do {
+            contadorBTree++;
 			if (!ascend(iter)) {
 				*iter = tmp;
 				return 0;
 			}
+			contadorBTree++;
 		} while (iter->k >= iter->node->count);
 	}
-	
+
 	iter->item = (void*)iter->node->item[iter->k];
 	return 1;
 }
 
 int btree_prev(btree_iterator iter)
 {
+    contadorBTree+=2;
 	if (iter->node->depth) {
+        contadorBTree--;
 		branch_end(iter);
 	} else if (iter->k == 0) {
 		struct btree_iterator_s tmp = *iter;
 		do {
+            contadorBTree++;
 			if (!ascend(iter)) {
 				*iter = tmp;
 				return 0;
 			}
+			contadorBTree++;
 		} while (iter->k == 0);
 	}
-	
+
 	iter->item = (void*)iter->node->item[--iter->k];
 	return 1;
 }
@@ -176,8 +190,10 @@ int btree_prev(btree_iterator iter)
 int btree_next(btree_iterator iter)
 {
 	int ret = btree_deref(iter);
+	contadorBTree++;
 	if (ret) {
 		iter->k++;
+		contadorBTree++;
 		if (iter->node->depth)
 			branch_begin(iter);
 	}
@@ -191,28 +207,31 @@ int btree_find_lr(const struct btree *btree, const void *key,
 	unsigned int k;
 	unsigned int depth;
 	int found = 0;
-	
+
 	iter->btree = (struct btree *)btree;
 	iter->item = NULL;
-	
+
 	depth = node->depth;
 	for (;;) {
+        contadorBTree++;
 		int f = 0;
 		k = btree->search(key, node->item, node->count, lr, &f);
-		
+
+		contadorBTree++;
 		if (f) {
 			iter->item = (void*)node->item[k - lr];
 			found = 1;
 		}
+		contadorBTree++;
 		if (!depth--)
 			break;
-		
+
 		node = node->branch[k];
 	}
-	
+
 	iter->node = node;
 	iter->k = k;
-	
+
 	return found;
 }
 
@@ -234,44 +253,50 @@ void btree_insert_at(btree_iterator iter, const void *item)
 	struct btree_node *xr = NULL;
 	struct btree_node *p;
 	struct btree *btree = iter->btree;
-	
+
 	/* btree_insert_at always sets iter->item to item. */
 	iter->item = (void*)item;
-	
+
 	/*
 	 * If node is not a leaf, fall to the end of the left branch of item[k]
 	 * so that it will be a leaf. This does not modify the iterator's logical
 	 * position.
 	 */
+    contadorBTree++;
 	if (iter->node->depth)
 		branch_end(iter);
-	
+
 	/*
 	 * First try inserting item into this node.
 	 * If it's too big, split it, and repeat by
 	 * trying to insert the median and right subtree into parent.
 	 */
+    contadorBTree++;
 	if (iter->node->count < MAX) {
 		node_insert(x, xr, iter->node, iter->k);
 		goto finished;
 	} else {
 		for (;;) {
+            contadorBTree++;
 			node_split(&x, &xr, iter->node, iter->k);
-			
+
+			contadorBTree++;
 			if (!ascend(iter))
 				break;
-			
+
+            contadorBTree++;
 			if (iter->node->count < MAX) {
 				node_insert(x, xr, iter->node, iter->k);
 				goto finished;
 			}
 		}
-		
+
 		/*
 		 * If splitting came all the way up to the root, create a new root whose
 		 * left branch is the current root, median is x, and right branch is the
 		 * half split off from the root.
 		 */
+        contadorBTree++;
 		assert(iter->node == btree->root);
 		p = node_alloc(1);
 		p->parent = NULL;
@@ -286,7 +311,7 @@ void btree_insert_at(btree_iterator iter, const void *item)
 			xr->k = 1;
 		btree->root = p;
 	}
-	
+
 finished:
 	btree->count++;
 	iter->node = NULL;
@@ -296,12 +321,15 @@ int btree_remove_at(btree_iterator iter)
 {
 	struct btree *btree = iter->btree;
 	struct btree_node *root;
-	
+
+	contadorBTree++;
 	if (!btree_deref(iter))
 		return 0;
-	
+
+    contadorBTree++;
 	if (!iter->node->depth) {
 		node_remove_leaf_item(iter->node, iter->k);
+		contadorBTree++;
 		if (iter->node->count >= MIN || !iter->node->parent)
 			goto finished;
 	} else {
@@ -310,46 +338,52 @@ int btree_remove_at(btree_iterator iter)
 		 * with its successor (which will always be in a leaf), then remove
 		 * the original copy of the successor.
 		 */
-		
+
 		/* Save pointer to condemned item. */
 		const void **x = &iter->node->item[iter->k];
-		
+
 		/* Descend to successor. */
 		iter->k++;
 		branch_begin(iter);
-		
+
 		/* Replace condemned item with successor. */
 		*x = iter->node->item[0];
-		
+
 		/* Remove successor. */
 		node_remove_leaf_item(iter->node, 0);
 	}
-	
+
 	/*
 	 * Restore nodes that fall under their minimum count.  This may
 	 * propagate all the way up to the root.
 	 */
 	for (;;) {
+        contadorBTree++;
+        contadorBTree++;
 		if (iter->node->count >= MIN)
 			goto finished;
+        contadorBTree++;
 		if (!ascend(iter))
 			break;
 		node_restore(iter->node, iter->k);
 	}
-	
+
 	/*
 	 * If combining came all the way up to the root, and it has no more
 	 * dividers, delete it and make its only branch the root.
 	 */
 	root = iter->node;
+	contadorBTree++;
 	assert(root == btree->root);
+	contadorBTree++;
 	assert(root->depth > 0);
+	contadorBTree++;
 	if (root->count == 0) {
 		btree->root = root->branch[0];
 		btree->root->parent = NULL;
 		free(root);
 	}
-	
+
 finished:
 	btree->count--;
 	iter->node = NULL;
@@ -364,9 +398,12 @@ finished:
  */
 static int elevate(btree_iterator a, btree_iterator b)
 {
+    contadorBTree++;
 	while (a->node->depth < b->node->depth)
+        contadorBTree++;
 		ascend(a);
-	
+
+    contadorBTree++;
 	if (a->k == b->k)
 		return -1;
 	return 0;
@@ -376,37 +413,51 @@ int btree_cmp_iters(const btree_iterator iter_a, const btree_iterator iter_b)
 {
 	btree_iterator a = {*iter_a}, b = {*iter_b};
 	int ad, bd;
-	
+
 	ad = btree_deref(a);
 	bd = btree_deref(b);
-	
+
+	contadorBTree++;
 	/* Check cases where one or both iterators are at the end. */
-	if (!ad)
+	if (!ad) {
+        contadorBTree++;
 		return bd ? 1 : 0;
-	if (!bd)
+    }
+    contadorBTree++;
+	if (!bd) {
+        contadorBTree++;
 		return ad ? -1 : 0;
-	
+    }
+
 	/* Bring iterators to the same depth. */
+	contadorBTree+=2;
 	if (a->node->depth < b->node->depth) {
+        contadorBTree--;
+        contadorBTree++;
 		if (elevate(a, b))
 			return -1;
 	} else if (a->node->depth > b->node->depth) {
+        contadorBTree++;
 		if (elevate(b, a))
 			return 1;
 	}
-	
+
 	/* Bring iterators to the same node. */
+	contadorBTree++;
 	while (a->node != b->node) {
+        contadorBTree++;
 		ascend(a);
 		ascend(b);
 	}
-	
+
 	/* Now we can compare by k directly. */
+	contadorBTree++;
 	if (a->k < b->k)
 		return -1;
+    contadorBTree++;
 	if (a->k > b->k)
 		return 1;
-	
+
 	return 0;
 }
 
@@ -427,6 +478,7 @@ btree_search_implement
 static struct btree_node *node_alloc(int internal)
 {
 	struct btree_node *node;
+	contadorBTree++;
 	size_t isize = internal
 		? sizeof(struct btree_node*) * (max_items + 1)
 		: 0;
@@ -439,21 +491,29 @@ static struct btree_node *node_alloc(int internal)
 static void node_delete(struct btree_node *node, struct btree *btree)
 {
 	unsigned int i, count = node->count;
-	
+
+	contadorBTree++;
 	if (!node->depth) {
+        contadorBTree++;
 		if (btree->destroy) {
-			for (i=0; i<count; i++)
+            contadorBTree++;
+			for (i=0; i<count; i++) {
+                contadorBTree++;
 				btree->destroy((void*)node->item[i], btree->destroy_ctx);
+            }
 		}
 	} else {
+        contadorBTree++;
 		for (i=0; i<count; i++) {
+            contadorBTree++;
 			node_delete(node->branch[i], btree);
+			contadorBTree++;
 			if (btree->destroy)
 				btree->destroy((void*)node->item[i], btree->destroy_ctx);
 		}
 		node_delete(node->branch[count], btree);
 	}
-	
+
 	free(node);
 }
 
@@ -462,8 +522,11 @@ static void branch_begin(btree_iterator iter)
 {
 	struct btree_node *node = iter->node->branch[iter->k];
 	unsigned int depth = node->depth;
-	while (depth--)
+	contadorBTree++;
+	while (depth--) {
+        contadorBTree++;
 		node = node->branch[0];
+    }
 	iter->node = node;
 	iter->k = 0;
 }
@@ -473,8 +536,11 @@ static void branch_end(btree_iterator iter)
 {
 	struct btree_node *node = iter->node->branch[iter->k];
 	unsigned int depth = node->depth;
-	while (depth--)
+	contadorBTree++;
+	while (depth--) {
+        contadorBTree++;
 		node = node->branch[node->count];
+    }
 	iter->node = node;
 	iter->k = node->count;
 }
@@ -483,9 +549,13 @@ static void branch_end(btree_iterator iter)
 static void begin_end_lr(btree_iterator iter, struct btree_node *node, int lr)
 {
 	iter->node = node;
+	contadorBTree++;
 	iter->k = lr ? node->count : 0;
-	if (node->depth)
+	contadorBTree++;
+	if (node->depth) {
+        contadorBTree++;
 		(lr ? branch_end : branch_begin)(iter);
+    }
 }
 
 /*
@@ -498,14 +568,20 @@ static void node_insert(const void *x, struct btree_node *xr,
 				struct btree_node *p, unsigned int k)
 {
 	unsigned int i;
-	
-	for (i = p->count; i-- > k;)
+
+	contadorBTree++;
+	for (i = p->count; i-- > k;) {
+        contadorBTree++;
 		p->item[i+1] = p->item[i];
+    }
 	p->item[k] = x;
-	
+
+	contadorBTree++;
 	if (p->depth) {
 		k++;
+		contadorBTree++;
 		for (i = p->count+1; i-- > k;) {
+            contadorBTree++;
 			p->branch[i+1] = p->branch[i];
 			p->branch[i+1]->k = i+1;
 		}
@@ -513,7 +589,7 @@ static void node_insert(const void *x, struct btree_node *xr,
 		xr->parent = p;
 		xr->k = k;
 	}
-	
+
 	p->count++;
 }
 
@@ -529,69 +605,78 @@ static void node_split(const void **x, struct btree_node **xr,
 {
 	unsigned int i, split;
 	struct btree_node *l = p, *r;
-	
+
 	/*
 	 * If k <= MIN, item will be inserted into left subtree, so give l
 	 * fewer items initially.
 	 * Otherwise, item will be inserted into right subtree, so give r
 	 * fewer items initially.
 	 */
+    contadorBTree++;
 	if (k <= MIN)
 		split = MIN;
 	else
 		split = MIN + 1;
-	
+
 	/*
 	 * If l->depth is 0, allocate a leaf node.
 	 * Otherwise, allocate an internal node.
 	 */
 	r = node_alloc(l->depth);
-	
+
 	/* l and r will be siblings, so they will have the same parent and depth. */
 	r->parent = l->parent;
 	r->depth = l->depth;
-	
+
 	/*
 	 * Initialize items/branches of right side.
 	 * Do not initialize r's leftmost branch yet because we don't know
 	 * whether it will be l's current rightmost branch or if *xr will
 	 * take its place.
 	 */
-	for (i = split; i < MAX; i++)
+    contadorBTree++;
+	for (i = split; i < MAX; i++) {
+        contadorBTree++;
 		r->item[i-split] = l->item[i];
+    }
+    contadorBTree++;
 	if (r->depth) {
+        contadorBTree++;
 		for (i = split+1; i <= MAX; i++) {
+            contadorBTree++;
 			r->branch[i-split] = l->branch[i];
 			r->branch[i-split]->parent = r;
 			r->branch[i-split]->k = i-split;
 		}
 	}
-	
+
 	/* Update counts. */
 	l->count = split;
 	r->count = MAX - split;
-	
+
 	/*
 	 * The nodes are now split, but the key isn't inserted yet.
 	 *
 	 * Insert key into left or right half,
 	 * depending on which side it fell on.
 	 */
+    contadorBTree++;
 	if (k <= MIN)
 		node_insert(*x, *xr, l, k);
 	else
 		node_insert(*x, *xr, r, k - split);
-	
+
 	/*
 	 * Give l's rightmost branch to r because l's rightmost item
 	 * is going up to become the median.
 	 */
+    contadorBTree++;
 	if (r->depth) {
 		r->branch[0] = l->branch[l->count];
 		r->branch[0]->parent = r;
 		r->branch[0]->k = 0;
 	}
-	
+
 	/*
 	 * Take up l's rightmost item to make it the median.
 	 * That item's right branch is now r.
@@ -609,8 +694,11 @@ static void node_split(const void **x, struct btree_node **xr,
 static void node_remove_leaf_item(struct btree_node *node, unsigned int k)
 {
 	unsigned int i;
-	for (i = k+1; i < node->count; i++)
+	contadorBTree++;
+	for (i = k+1; i < node->count; i++) {
+        contadorBTree++;
 		node->item[i-1] = node->item[i];
+    }
 	node->count--;
 }
 
@@ -625,17 +713,23 @@ static void combine(struct btree_node *node, unsigned int k);
  */
 void node_restore(struct btree_node *node, unsigned int k)
 {
+    contadorBTree+=4;
 	if (k == 0) {
+        contadorBTree-=3;
+        contadorBTree++;
 		if (node->branch[1]->count > MIN)
 			move_left(node, 0);
 		else
 			combine(node, 0);
 	} else if (k == node->count) {
+        contadorBTree-=2;
+        contadorBTree++;
 		if (node->branch[k-1]->count > MIN)
 			move_right(node, k-1);
 		else
 			combine(node, k-1);
 	} else if (node->branch[k-1]->count > MIN) {
+        contadorBTree--;
 		move_right(node, k-1);
 	} else if (node->branch[k+1]->count > MIN) {
 		move_left(node, k);
@@ -648,24 +742,30 @@ static void move_left(struct btree_node *node, unsigned int k)
 {
 	struct btree_node *l = node->branch[k], *r = node->branch[k+1], *mv;
 	unsigned int i;
-	
+
 	l->item[l->count] = node->item[k];
 	node->item[k] = r->item[0];
-	for (i = 1; i < r->count; i++)
+	contadorBTree++;
+	for (i = 1; i < r->count; i++) {
+        contadorBTree++;
 		r->item[i-1] = r->item[i];
-	
+    }
+
+    contadorBTree++;
 	if (r->depth) {
 		mv = r->branch[0];
 		l->branch[l->count+1] = mv;
 		mv->parent = l;
 		mv->k = l->count+1;
-		
+
+		contadorBTree++;
 		for (i = 1; i <= r->count; i++) {
+            contadorBTree++;
 			r->branch[i-1] = r->branch[i];
 			r->branch[i-1]->k = i-1;
 		}
 	}
-	
+
 	l->count++;
 	r->count--;
 }
@@ -674,14 +774,20 @@ static void move_right(struct btree_node *node, unsigned int k)
 {
 	struct btree_node *l = node->branch[k], *r = node->branch[k+1];
 	unsigned int i;
-	
-	for (i = r->count; i--;)
+
+	contadorBTree++;
+	for (i = r->count; i--;) {
+        contadorBTree++;
 		r->item[i+1] = r->item[i];
+    }
 	r->item[0] = node->item[k];
 	node->item[k] = l->item[l->count-1];
-	
+
+	contadorBTree++;
 	if (r->depth) {
+        contadorBTree++;
 		for (i = r->count+1; i--;) {
+            contadorBTree++;
 			r->branch[i+1] = r->branch[i];
 			r->branch[i+1]->k = i+1;
 		}
@@ -689,7 +795,7 @@ static void move_right(struct btree_node *node, unsigned int k)
 		r->branch[0]->parent = r;
 		r->branch[0]->k = 0;
 	}
-	
+
 	l->count--;
 	r->count++;
 }
@@ -700,29 +806,37 @@ static void combine(struct btree_node *node, unsigned int k)
 	struct btree_node *l = node->branch[k], *r = node->branch[k+1], *mv;
 	const void **o = &l->item[l->count];
 	unsigned int i;
-	
+
 	//append node->item[k] followed by right node's items to left node
 	*o++ = node->item[k];
-	for (i=0; i<r->count; i++)
+	contadorBTree++;
+	for (i=0; i<r->count; i++) {
+        contadorBTree++;
 		*o++ = r->item[i];
-	
+    }
+
 	//if applicable, append right node's branches to left node
+	contadorBTree++;
 	if (r->depth) {
+        contadorBTree++;
 		for (i=0; i<=r->count; i++) {
+            contadorBTree++;
 			mv = r->branch[i];
 			l->branch[l->count + i + 1] = mv;
 			mv->parent = l;
 			mv->k = l->count + i + 1;
 		}
 	}
-	
+
 	//remove k and its right branch from parent node
+	contadorBTree++;
 	for (i = k+1; i < node->count; i++) {
+        contadorBTree++;
 		node->item[i-1] = node->item[i];
 		node->branch[i] = node->branch[i+1];
 		node->branch[i]->k = i;
 	}
-	
+
 	//don't forget to update the left and parent node's counts and to free the right node
 	l->count += r->count + 1;
 	node->count--;
@@ -733,22 +847,31 @@ static int node_walk_backward(const struct btree_node *node,
 				btree_action_t action, void *ctx)
 {
 	unsigned int i, count = node->count;
-	
+
+	contadorBTree++;
 	if (!node->depth) {
+        contadorBTree++;
 		for (i=count; i--;)
+            contadorBTree++;
+            contadorBTree++;
 			if (!action((void*)node->item[i], ctx))
 				return 0;
 	} else {
+        contadorBTree++;
 		if (!node_walk_backward(node->branch[count], action, ctx))
 			return 0;
+        contadorBTree++;
 		for (i=count; i--;) {
+            contadorBTree++;
+            contadorBTree++;
 			if (!action((void*)node->item[i], ctx))
 				return 0;
+            contadorBTree++;
 			if (!node_walk_backward(node->branch[i], action, ctx))
 				return 0;
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -756,21 +879,31 @@ static int node_walk_forward(const struct btree_node *node,
 				btree_action_t action, void *ctx)
 {
 	unsigned int i, count = node->count;
-	
+
+	contadorBTree++;
 	if (!node->depth) {
-		for (i=0; i<count; i++)
+        contadorBTree++;
+		for (i=0; i<count; i++) {
+            contadorBTree++;
+            contadorBTree++;
 			if (!action((void*)node->item[i], ctx))
 				return 0;
+        }
 	} else {
+        contadorBTree++;
 		for (i=0; i<count; i++) {
+            contadorBTree++;
+            contadorBTree++;
 			if (!node_walk_forward(node->branch[i], action, ctx))
 				return 0;
+            contadorBTree++;
 			if (!action((void*)node->item[i], ctx))
 				return 0;
 		}
+		contadorBTree++;
 		if (!node_walk_forward(node->branch[count], action, ctx))
 			return 0;
 	}
-	
+
 	return 1;
 }
