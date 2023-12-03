@@ -105,13 +105,14 @@ int arvoreRB(int *valores, int tamanho) {
     }
     contadorRBTree = 0;
     for (i = 0; i < tamanho; i++) {
-        removerRB(rbtree, rbtree->raiz,valores[i]);
+        removerRB(rbtree, valores[i]);
     }
     printf("%s", rbtree->raiz == rbtree->nulo ? "Finalizado RB com sucesso\n" : "Erro!");
     return 0;
 }
 
 int arvoreBOrdemUm(int *valores, int tamanho) {
+    max_items = 2;
     int i;
     struct test_item chave_valor[tamanho];
     struct btree *tree = btree_new(binarySearchTestItem);
@@ -132,6 +133,7 @@ int arvoreBOrdemUm(int *valores, int tamanho) {
             // printf("Removido com sucesso!\n");
         }
     }
+    printf("Finalizado com sucesso BTree 1\n");
 }
 
 int arvoreBOrdemCinco(int *valores, int tamanho) {
@@ -157,12 +159,14 @@ int arvoreBOrdemCinco(int *valores, int tamanho) {
         //     printf("Removido com sucesso!\n");
         // }
     }
+    printf("Finalizado com sucesso BTree 5\n");
 }
 
 int arvoreBOrdemDez(int *valores, int tamanho) {
     // Pra usar com ordem 10, dado que max_items / 2 = ordem = mínimo 
     max_items = 20;
     int i;
+    // Cada item tem uma chave e um valor
     struct test_item chave_valor[tamanho];
     struct btree *tree = btree_new(binarySearchTestItem);
     // Copiando os valores gerados aleatoriamente pra dentro do array de struct chave valor
@@ -182,12 +186,13 @@ int arvoreBOrdemDez(int *valores, int tamanho) {
         //     printf("Removido com sucesso!\n");
         // }
     }
+    printf("Finalizado com sucesso BTree 10\n");
 }
 
 int main(int argc, char const *argv[]) {
     int n = 10000;
     
-    int i, valor, repeticoes = 1;
+    int i, valor, repeticoes = 10;
 
     int mediaAVL = 0;
     int mediaRubroNegra = 0;
@@ -198,10 +203,10 @@ int main(int argc, char const *argv[]) {
     for (i = 0; i < repeticoes; i++) {
         int *valores = geraVetor(n);
         // mediaAVL += arvoreAVL(valores, n);
-        // mediaRubroNegra += arvoreRB(valores, n);
+        mediaRubroNegra += arvoreRB(valores, n);
         // mediaBtreeOne += arvoreBOrdemUm(valores, n);
         // mediaBtreeFive += arvoreBOrdemCinco(valores, n);
-        mediaBtreeTen += arvoreBOrdemDez(valores, n);    
+        // mediaBtreeTen += arvoreBOrdemDez(valores, n);    
     }
 
     mediaAVL /= repeticoes;

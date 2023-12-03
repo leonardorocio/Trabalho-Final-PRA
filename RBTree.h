@@ -33,7 +33,7 @@ NoRB* rotacionarDireita(ArvoreRB *, NoRB *);
 ArvoreRB *criar();
 int vaziaRB(ArvoreRB *);
 // NoRB* removerRB(ArvoreRB*, NoRB*, int);
-void removerRB(ArvoreRB*, NoRB*, int);
+void removerRB(ArvoreRB*, int);
 void removerBalanceado(ArvoreRB* arvore, int chave);
 // void removerRB(ArvoreRB*, int);
 NoRB* resolveCasosBalanceamento(ArvoreRB*, NoRB*);

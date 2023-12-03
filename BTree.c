@@ -75,7 +75,7 @@ struct btree *btree_new(btree_search_t search)
 	btree->root = node;
 	btree->search = search;
 	btree->multi = false;
-	printf("Max Items: %d\nMIN: %d\nMAX: %d", max_items, MIN, MAX);
+	printf("Max Items: %d\nMIN: %d\nMAX: %d\n", max_items, MIN, MAX);
 	return btree;
 }
 

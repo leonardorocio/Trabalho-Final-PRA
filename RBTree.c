@@ -142,7 +142,8 @@ void balancearRemocao(ArvoreRB* arvore, NoRB* no, NoRB* irmao) {
     no->cor = Preto;   
 }
 
-void removerRB(ArvoreRB* arvore, NoRB* no, int chave) {
+void removerRB(ArvoreRB* arvore, int chave) {
+    NoRB *no = localizarRB(arvore, chave);
     NoRB *subs = no;
     NoRB *x = no;
     Cor subsCorOriginal = subs->cor;
