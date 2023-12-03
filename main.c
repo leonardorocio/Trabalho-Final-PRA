@@ -155,6 +155,8 @@ void arvoreRB(int *valores, int tamanho) {
 
 void arvoreBOrdemUm(int *valores, int tamanho) {
     contadorBTree = 0;
+    // Pra usar com ordem 1, dado que max_items / 2 = ordem = mínimo
+    max_items = 2;
     int i;
     struct test_item chave_valor[tamanho];
     struct btree *tree = btree_new(binarySearchTestItem);
