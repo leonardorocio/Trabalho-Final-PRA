@@ -99,7 +99,7 @@ void criarCsv(int matrizArvores[TAM_CONJUNTOS][QTDE_TIPOS_DE_ARVORES], int tam, 
 
     int linha;
     for (linha = 0; linha < TAM_CONJUNTOS; linha++) {
-        fprintf(arquivo, "%ul,%ul,%ul,%ul,%ul\n", matrizArvores[linha][AVL], matrizArvores[linha][RB], matrizArvores[linha][B_ONE], matrizArvores[linha][B_FIVE], matrizArvores[linha][B_TEN]);
+        fprintf(arquivo, "%d,%d,%d,%d,%d\n", matrizArvores[linha][AVL], matrizArvores[linha][RB], matrizArvores[linha][B_ONE], matrizArvores[linha][B_FIVE], matrizArvores[linha][B_TEN]);
     }
 
     fclose(arquivo);
