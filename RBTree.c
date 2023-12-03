@@ -1,6 +1,6 @@
 #include "RBTree.h"
 
-int contadorRBTree = 0;
+unsigned long contadorRBTree = 0;
 
 ArvoreRB* criar() {
     ArvoreRB *arvore = malloc(sizeof(ArvoreRB));
@@ -139,11 +139,8 @@ void balancearRemocao(ArvoreRB* arvore, NoRB* no, NoRB* irmao) {
             }
         }
     }
-    no->cor = Preto;
-    
+    no->cor = Preto;   
 }
-
-
 
 void removerRB(ArvoreRB* arvore, NoRB* no, int chave) {
     NoRB *subs = no;
@@ -186,41 +183,41 @@ void balancear(ArvoreRB* arvore, NoRB* no) {
             NoRB *tio = no->pai->pai->direita;
             
             if (tio->cor == Vermelho) {
-                tio->cor = Preto; //Caso 1
+                tio->cor = Preto; 
                 no->pai->cor = Preto; 
 
-                no->pai->pai->cor = Vermelho; //Caso 1
-                no = no->pai->pai; //Caso 1
+                no->pai->pai->cor = Vermelho; 
+                no = no->pai->pai; 
             } else {
                 if (no == no->pai->direita) {
-                    no = no->pai; //Caso 2
-                    rotacionarEsquerda(arvore, no); //Caso 2
+                    no = no->pai; 
+                    rotacionarEsquerda(arvore, no); 
                 } 
                 no->pai->cor = Preto; 
-                no->pai->pai->cor = Vermelho; //Caso 3
-                rotacionarDireita(arvore, no->pai->pai); //Caso 3
+                no->pai->pai->cor = Vermelho; 
+                rotacionarDireita(arvore, no->pai->pai); 
             }
         } else {
             NoRB *tio = no->pai->pai->esquerda;
             
             if (tio->cor == Vermelho) {
-                tio->cor = Preto; //Caso 1
+                tio->cor = Preto; 
                 no->pai->cor = Preto; 
 
-                no->pai->pai->cor = Vermelho; //Caso 1
-                no = no->pai->pai; //Caso 1
+                no->pai->pai->cor = Vermelho; 
+                no = no->pai->pai; 
             } else {
                 if (no == no->pai->esquerda) {
-                    no = no->pai; //Caso 2
-                    rotacionarDireita(arvore, no); //Caso 2
+                    no = no->pai; 
+                    rotacionarDireita(arvore, no); 
                 }
                 no->pai->cor = Preto; 
-                no->pai->pai->cor = Vermelho; //Caso 3
-                rotacionarEsquerda(arvore, no->pai->pai); //Caso 3
+                no->pai->pai->cor = Vermelho; 
+                rotacionarEsquerda(arvore, no->pai->pai); 
             }
         }
     }
-    arvore->raiz->cor = Preto; //Conserta possível quebra regra 2
+    arvore->raiz->cor = Preto;
 }
 
 NoRB* localizarRB(ArvoreRB* arvore, int valor) {
@@ -236,7 +233,6 @@ NoRB* localizarRB(ArvoreRB* arvore, int valor) {
         }
     }
 
-    printf("Nó não existe!\n");
     return NULL;
 }
 

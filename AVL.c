@@ -1,6 +1,6 @@
 #include "AVL.h"
 
-int contadorAVL = 0;
+unsigned long contadorAVL = 0;
 
 ArvoreAVL* criarAVL() {
     ArvoreAVL *arvore = malloc(sizeof(ArvoreAVL));
